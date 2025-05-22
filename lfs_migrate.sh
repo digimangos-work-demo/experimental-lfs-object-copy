@@ -45,12 +45,9 @@ if [ -z "$LFS_URL" ]; then
   LFS_URL="${ORIGIN_URL}.git/info/lfs"
 fi
 BATCH_URL="${LFS_URL}/objects/batch"
-echo "LFS URL: $LFS_URL"
-echo "Batch URL: $BATCH_URL"
 
 # Loop through LFS files using JSON format
 git lfs ls-files --all --json | jq -c ".files | .[]" | while read -r json_line; do
-    echo $json_line
     oid=$(echo "$json_line" | jq -r '.oid')
     size=$(echo "$json_line" | jq -r '.size')
     file=$(echo "$json_line" | jq -r '.name')
@@ -74,15 +71,12 @@ git lfs ls-files --all --json | jq -c ".files | .[]" | while read -r json_line; 
 }
 EOF
     )
-    echo "JSON request: $json"
-    
+   
     response=$(curl -s -u "x-access-token:${GITHUB_PAT}" \
       -X POST "$BATCH_URL" \
       -H "Accept: application/vnd.git-lfs+json" \
       -H "Content-Type: application/vnd.git-lfs+json" \
       -d "$json")
-
-    echo "Response: $response"
 
     # Check for errors in the response
     if echo "$response" | grep -q '"message"'; then
